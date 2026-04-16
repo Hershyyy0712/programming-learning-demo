@@ -4,12 +4,18 @@ using namespace std;
 //加密
 string caesarEncrypt(string text, int key) {
     string res = "";
-    for (char c : text) {
-        if (isupper(c)) {
+    for (char c : text)
+    {
+        if (isupper(c))
+        {
             res += (char)((c - 'A' + key) % 26 + 'A');
-        } else if (islower(c)) {
+        }
+        else if (islower(c))
+        {
             res += (char)((c - 'a' + key) % 26 + 'a');
-        } else {
+        }
+        else
+        {
             res += c;
         }
     }
@@ -26,9 +32,10 @@ int main() {
     int key = 3;
 
     string cipher = caesarEncrypt(plain, key);
-    cout << "明码:    " << plain << endl;
-    cout << "密码:    " << cipher << endl;
-    cout << "解密:  " << caesarDecrypt(cipher, key) << endl;
+    cout << "明码：    " << plain << endl;
+    cout << "密码：    " << cipher << endl;
+    cout << "解密：    " << caesarDecrypt(cipher, key) << endl;
 
     return 0;
 }
+
