@@ -17,7 +17,7 @@ int shortestpath(vector<vector<int>>& grid)
 	int dy[] = { 0，0,-1,1 };
 	int nx=0， ny=0;
 	int x, y, step;
-	while (!q.空的())
+	while (!q.empty())
 	{
 		x = get<0>(q.front());
 		y = get<1>(q.front());
