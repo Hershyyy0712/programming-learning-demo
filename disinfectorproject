@@ -1,0 +1,165 @@
+#include <iostream>   
+#include <vector>     
+#include <string>     
+#include <algorithm>  
+#include <cmath>     
+#include <fstream>   
+using namespace std;
+
+
+class Disinfector
+{
+private:
+    string shelfName;
+    const double UV_STANDARD = 90.0;// 国标有效消毒阈值
+    vector<double> uvData;          // 存储所有检测点的紫外线强度数据
+    double avgUV;
+    double maxUV;
+    double minUV;
+    double rangeUV;     // 强度极差
+    double stability;   // 紫外分布稳定度
+    int validCount;     // 达标点位
+    int deadCount;      // 消毒死角
+
+    void calcBase()
+    {
+        maxUV = *max_element(uvData.begin(), uvData.end());
+        minUV = *min_element(uvData.begin(), uvData.end());
+        rangeUV = maxUV - minUV;
+        double sum = 0;
+        for (double v : uvData)
+            sum += v;
+        avgUV = sum / uvData.size();
+    }
+
+    // 筛选达标点位和消毒死角
+    void checkDeadAngle()
+    {
+        validCount = 0;
+        deadCount = 0;
+        for (double v : uvData)
+        {
+            if (v >= UV_STANDARD)
+                validCount++;
+            else
+                deadCount++;
+        }
+    }
+
+    // 计算紫外分布稳定度（数值越小越均匀）
+    void calcStability()
+    {
+        double diffSum = 0;
+        for (double v : uvData)
+            diffSum += fabs(v - avgUV);
+        stability = diffSum / uvData.size();
+    }
+
+public:
+
+    Disinfector(string name) : shelfName(name) {}
+
+    // 添加单个紫外线检测数据
+    void addOneData(double val)
+    {
+        uvData.push_back(val);
+    }
+
+
+    void analyzeAll()
+    {
+        calcBase();
+        checkDeadAngle();
+        calcStability();
+    }
+
+
+    void printReport()
+    {
+        cout << "层架类型：" << shelfName << endl;
+         cout << "有效消毒阈值：" << UV_STANDARD << "uW/cm^2" << endl;
+        cout << "有效检测点总数：" << uvData.size() << endl;
+        cout << "平均紫外强度：" << avgUV << endl;
+        cout << "最高强度：" << maxUV << "  最低强度：" << minUV << endl;
+        cout << "强度极差：" << rangeUV << endl;
+        cout << "达标点位：" << validCount << "遮挡死角" << deadCount << endl;
+        cout << "紫外分布稳定度：" << stability << endl;
+
+    }
+
+
+    string getShelfName() { return shelfName; }
+    int getSize() { return static_cast<int>(uvData.size()); } // 修复size_t转int的警告
+    double getAvg() { return avgUV; }
+    double getMax() { return maxUV; }
+    double getMin() { return minUV; }
+    double getRange() { return rangeUV; }
+    int getValid() { return validCount; }
+    int getDead() { return deadCount; }
+    double getStability() { return stability; }
+};
+
+
+int main()
+{
+
+    int n;
+    cout << "请输入层架的总数量：";
+    cin >> n;
+
+
+    vector<Disinfector> shelves;
+
+
+    for (int i = 0; i < n; i++) {
+        string name;
+        cout << "请输入第" << i + 1 << "个层架的名称：";
+        cin >> name;
+        shelves.emplace_back(name);
+    }
+
+
+    double val;  // 单个紫外线强度值
+    int num;     // 单个层架的检测点数量
+    for (int i = 0; i < n; i++) {
+        // 当前层架检测点数量
+        cout << "\n请输入" << shelves[i].getShelfName() << "检测点数量：";
+        cin >> num;
+        cout << "依次输入" << num << "个紫外线强度：" << endl;
+        // 循环录入
+        for (int j = 0; j < num; j++)
+        {
+            cin >> val;
+            shelves[i].addOneData(val);
+        }
+    }
+
+
+    for (int i = 0; i < n; i++) {
+        shelves[i].analyzeAll();
+    }
+
+    cout << "\n 总报告\n" << endl;
+    for (int i = 0; i < n; i++) {
+        shelves[i].printReport();
+    }
+
+    ofstream out("消毒柜数据报表.csv");
+    // 表头
+    out << "层架类型,检测点数,平均紫外强度,最高强度,最低强度,强度极差,达标点位,死角点位,分布稳定度\n";
+    // 所有层架统计数据
+    for (int i = 0; i < n; i++) {
+        out << shelves[i].getShelfName() << ","
+            << shelves[i].getSize() << ","
+            << shelves[i].getAvg() << ","
+            << shelves[i].getMax() << ","
+            << shelves[i].getMin() << ","
+            << shelves[i].getRange() << ","
+            << shelves[i].getValid() << ","
+            << shelves[i].getDead() << ","
+            << shelves[i].getStability() << "\n";
+    }
+    out.close();
+
+    return 0;
+}
